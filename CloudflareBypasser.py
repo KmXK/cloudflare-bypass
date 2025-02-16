@@ -28,7 +28,7 @@ class CloudflareBypasser:
                 if result:
                     return result
         return None
-    
+
     def locate_cf_button(self):
         button = None
         eles = self.driver.eles("tag:input")
@@ -37,10 +37,19 @@ class CloudflareBypasser:
                 if "turnstile" in ele.attrs["name"] and ele.attrs["type"] == "hidden":
                     button = ele.parent().shadow_root.child()("tag:body").shadow_root("tag:input")
                     break
-            
+
         if button:
             return button
         else:
+            for ele in eles:
+                if "id" in ele.attrs.keys() and "type" in ele.attrs.keys():
+                    if ele.attrs["id"] == "cont" and ele.attrs["type"] == "submit":
+                        button = ele
+                        break
+
+            if button:
+                return button
+
             # If the button is not found, search it recursively
             self.log_message("Basic search failed. Searching for button recursively.")
             ele = self.driver.ele("tag:body")
@@ -70,13 +79,13 @@ class CloudflareBypasser:
     def is_bypassed(self):
         try:
             title = self.driver.title.lower()
-            return "just a moment" not in title
+            return "just a moment" not in title and "проверка" not in title
         except Exception as e:
             self.log_message(f"Error checking page title: {e}")
             return False
 
     def bypass(self):
-        
+
         try_count = 0
 
         while not self.is_bypassed():
